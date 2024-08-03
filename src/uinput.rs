@@ -89,6 +89,8 @@ pub fn ioctl_test() {
         // let ret = libc::ioctl(file.as_raw_fd(), UI_DEV_CREATE as c_ulong);
         // println!("ret={:?}", ret);
         libc::sleep(1);
+        // panic!("UI_DEV_CREATE");
+        // libc::sleep(1);
         let key: [u8; 24] = unsafe { mem::transmute(KEY_K_PRESSED) };
         nix::unistd::write(file.as_fd(), &key).expect("write failed");
 
