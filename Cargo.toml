@@ -6,10 +6,17 @@ edition = "2021"
 [[bin]]
 name = "uinput"
 path = "src/main.rs"
+[profile.release]
+opt-level = 'z'
+codegen-units = 1
+strip = true
+lto = true
+debug = false
+
 
 [dependencies]
 linux-raw-sys = { version = "0.6.4", features = ["ioctl"] }
-nix = { version = "0.29.0", features = ["ioctl"] }
+nix = { version = "0.29.0", features = ["ioctl", "fs"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 libc = "0.2.155"
