@@ -71,7 +71,9 @@ pub fn ioctl_test() {
 
         // Prepare entries in uinput_setup. must not be null
         let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
-        for (i, c) in UINPUT_NAME.chars().enumerate() {
+        UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
+            name[i] = c as i8;
+        });
             name[i] = c as i8;
         }
         let usetup: uinput_setup = uinput_setup {
