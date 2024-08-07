@@ -19,12 +19,16 @@ use std::{mem, slice};
 
 /// Testing of ioctl() calls so as they are used in example in
 /// https://kernel.org/doc/html/v4.19/input/uinput.html
-///
+#[macro_use]
 ioctl_write_ptr_bad!(set_uinput_setup, UI_DEV_SETUP, uinput_setup);
 ioctl_none_bad!(ui_dev_create, UI_DEV_CREATE);
 ioctl_none_bad!(ui_dev_destroy, UI_DEV_DESTROY);
 ioctl_write_int!(ui_ioctl_set_evbit, UI_SET_EVBIT, EV_KEY);
 ioctl_write_int!(ui_ioctl_set_keybit, UI_SET_KEYBIT, KEY_K);
+
+const UINPUT_NAME: &str = "Test input device";
+const UINPUT_NAME_SIZE: usize = 80;
+
 const REPORT: input_event = input_event {
     time: timeval {
         tv_sec: 0,
@@ -65,14 +69,13 @@ pub fn ioctl_test() {
             panic!("UI_SET_KEYBIT");
         }
 
-        // Prepare entries in uinput_setup
-        // must not be null
-        //let a = join!(b"Example device\0", [0; 79 - b"Example device\0".len()]);
-        let mut v: [u8; 80] = [0; 80];
-        let a = [0; 79 - b"Example device\0".len()];
-        v[..b"Example device\0".len()].copy_from_slice(b"Example device\0");
-        v[b"Example device\0".len() + 1..].copy_from_slice(&a);
-        let name: [i8; 80] = unsafe { mem::transmute_copy(&v) };
+        // Prepare entries in uinput_setup. must not be null
+        let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
+        UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
+            name[i] = c as i8;
+        });
+            name[i] = c as i8;
+        }
         let usetup: uinput_setup = uinput_setup {
             id: input_id {
                 bustype: BUS_USB,
