@@ -74,8 +74,6 @@ pub fn ioctl_test() {
         UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
             name[i] = c as i8;
         });
-            name[i] = c as i8;
-        }
         let usetup: uinput_setup = uinput_setup {
             id: input_id {
                 bustype: BUS_USB,
