@@ -1,0 +1,21 @@
+
+repeats: 2
+program:
+  # KEY_DOT:        c_int = 52;    
+  - type: key_event
+    param1: press
+    param2: 52
+  - type: delay
+    param1: 100
+  - type: key_event
+    param1: release
+    param2: 52
+  # KEY_SPACE:        c_int = 57;
+  - type: key_event
+    param1: press
+    param2: 57
+  - type: delay
+    param1: 100
+  - type: key_event
+    param1: release
+    param2: 57

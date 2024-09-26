@@ -1,176 +1,95 @@
-use crate::test_scenario::TestScenario;
 use input_linux_sys::*;
-use libc::{c_int, c_ulong};
-use libc::{c_void, fdopen, fwrite};
 use linux_raw_sys::ioctl::UI_DEV_CREATE;
 use linux_raw_sys::ioctl::UI_DEV_DESTROY;
 use linux_raw_sys::ioctl::UI_DEV_SETUP;
-use linux_raw_sys::ioctl::UI_SET_EVBIT;
-use linux_raw_sys::ioctl::UI_SET_KEYBIT;
 use std::ffi::CString;
 use std::os::fd::AsFd;
-use std::{fs::File, os::fd::AsRawFd};
+use std::{fs::File, os::fd::AsRawFd, thread, time};
 use std::{mem, slice};
-// #[macro_use]
-// ioctl_write_ptr!(ui_dev_setup, UI_DEV_SETUP, 0, uinput_setup);
-// ioctl_write_ptr(ui_dev_setup, UI_DEV_SETUP, EV_KEY);
-// ioctl_write_int!(ui_ioctl_set_evbit, UI_SET_EVBIT, EV_KEY);
-// ioctl_write_int!(ui_ioctl_set_keybit, UI_SET_KEYBIT, KEY_SPACE);
+
+// See C implementation
+const UINPUT_IOCTL_BASE: u8 = b'U';
+const UI_SET_EVBIT_P: u8 = 100;
+const UI_SET_KEYBIT_P: u8 = 101;
 
 /// Testing of ioctl() calls so as they are used in example in
 /// https://kernel.org/doc/html/v4.19/input/uinput.html
 #[macro_use]
-ioctl_write_ptr_bad!(set_uinput_setup, UI_DEV_SETUP, uinput_setup);
-ioctl_none_bad!(ui_dev_create, UI_DEV_CREATE);
-ioctl_none_bad!(ui_dev_destroy, UI_DEV_DESTROY);
-ioctl_write_int!(ui_ioctl_set_evbit, UI_SET_EVBIT, EV_KEY);
-ioctl_write_int!(ui_ioctl_set_keybit, UI_SET_KEYBIT, KEY_K);
+ioctl_write_int!(ioctl_set_ebit, UINPUT_IOCTL_BASE, UI_SET_EVBIT_P);
+ioctl_write_int!(ioctl_set_kbit, UINPUT_IOCTL_BASE, UI_SET_KEYBIT_P);
+ioctl_write_ptr_bad!(ioclt_dev_setup, UI_DEV_SETUP, uinput_setup);
+ioctl_none_bad!(ioctl_dev_create, UI_DEV_CREATE);
+ioctl_none_bad!(ioctl_dev_destroy, UI_DEV_DESTROY);
 
 const UINPUT_NAME: &str = "Test input device";
 const UINPUT_NAME_SIZE: usize = 80;
+const TEST_KEY: u16 = KEY_K as u16;
 
 const REPORT: input_event = input_event {
-    time: timeval {
-        tv_sec: 0,
-        tv_usec: 0,
-    },
+    time: timeval { tv_sec: 0, tv_usec: 0 },
     type_: EV_SYN as u16,
     code: SYN_REPORT as u16,
     value: 0,
 };
-const KEY_K_PRESSED: input_event = input_event {
-    time: timeval {
-        tv_sec: 0,
-        tv_usec: 0,
-    },
+const KEY_EVENT: input_event = input_event {
+    time: timeval { tv_sec: 0, tv_usec: 0 },
     type_: EV_KEY as u16,
-    code: KEY_K as u16,
-    value: 1,
-};
-const KEY_K_RELEASED: input_event = input_event {
-    time: timeval {
-        tv_sec: 0,
-        tv_usec: 0,
-    }, //16
-    type_: EV_KEY as u16, //2
-    code: KEY_K as u16,   //2
-    value: 0,             //4
+    code: TEST_KEY, // Real code will be set later
+    value: 1,       // Real value will be set later
 };
 
-pub fn ioctl_test() {
-    unsafe {
-        let file = File::options().write(true).open("/dev/uinput").unwrap();
-        // ui_ioctl_set_evbit(file.as_raw_fd(), EV_KEY  as nix::sys::ioctl::ioctl_param_type,).expect("set_evbits key");
-        if libc::ioctl(file.as_raw_fd(), UI_SET_EVBIT as c_ulong, EV_KEY) < 0 {
-            panic!("UI_SET_EVBIT");
-        }
-        // ui_ioctl_set_keybit(file.as_raw_fd(), KEY_K.try_into().unwrap()).expect("set_keybits k");
-        if libc::ioctl(file.as_raw_fd(), UI_SET_KEYBIT as c_ulong, KEY_K) < 0 {
-            panic!("UI_SET_KEYBIT");
-        }
-
-        // Prepare entries in uinput_setup. must not be null
-        let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
-        UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
-            name[i] = c as i8;
-        });
-        let usetup: uinput_setup = uinput_setup {
-            id: input_id {
-                bustype: BUS_USB,
-                vendor: 0x1234,
-                product: 0x5678,
-                version: 0,
-            },
-            ff_effects_max: 0,
-            name,
-        };
-
-        set_uinput_setup(file.as_raw_fd(), &usetup).expect("UI_DEV_SETUP");
-        ui_dev_create(file.as_raw_fd()).expect("UI_DEV_CREATE");
-        // let ret = libc::ioctl(file.as_raw_fd(), UI_DEV_CREATE as c_ulong);
-        // println!("ret={:?}", ret);
-        libc::sleep(1);
-        // panic!("UI_DEV_CREATE");
-        // libc::sleep(1);
-        let key: [u8; 24] = unsafe { mem::transmute(KEY_K_PRESSED) };
-        nix::unistd::write(file.as_fd(), &key).expect("write failed");
-
-        let report: [u8; 24] = unsafe { mem::transmute(REPORT) };
-        nix::unistd::write(file.as_fd(), &report).expect("write failed");
-
-        let key: [u8; 24] = unsafe { mem::transmute(KEY_K_RELEASED) };
-        nix::unistd::write(file.as_fd(), &key).expect("write failed");
-
-        nix::unistd::write(file.as_fd(), &report).expect("write failed");
-
-        libc::sleep(1);
-        ui_dev_destroy(file.as_raw_fd()).expect("UI_DEV_DESTROY");
-        // if libc::ioctl(file.as_raw_fd(), UI_DEV_DESTROY as c_ulong) < 0 {
-        //     panic!("UI_DEV_CREATE");
-        // }
-        println!("\u{23CE}");
-    }
+unsafe fn as_u8_slice<T: Sized>(p: &T) -> &[u8] {
+    ::core::slice::from_raw_parts((p as *const T) as *const u8, ::core::mem::size_of::<T>())
 }
 
-fn get_keys_from_scenario(scenario: &TestScenario) -> Vec<u8> {
-    let mut keys = Vec::new();
-    for prog in &*scenario.program {
-        if prog.get("type").unwrap() == "key_event" {
-            let s_key = prog
-                .get("param2")
-                .unwrap()
-                .to_string()
-                .parse::<u8>()
-                .unwrap();
+pub fn setup() -> std::fs::File {
+    // Prepare entries in uinput_setup. Must not be null
+    let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
+    UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
+        name[i] = c as i8;
+    });
+    let usetup: uinput_setup = uinput_setup {
+        id: input_id {
+            bustype: BUS_USB,
+            vendor: 0x1234,
+            product: 0x5678,
+            version: 0,
+        },
+        ff_effects_max: 0,
+        name,
+    };
 
-            let mut not_exists = true;
-            // for vkey in keys.iter() {
-            //     if vkey == s_key {
-            //         not_exists = false;
-            //         break;
-            //     }
-            // }
-            // keys.push(1);
+    // Setup
+    let file = File::options().write(true).open("/dev/uinput").unwrap();
+    unsafe {
+        ioctl_set_ebit(file.as_raw_fd(), EV_KEY as nix::sys::ioctl::ioctl_param_type).expect("ioctl_set_ebit error");
+        for i in 0..255 {
+            ioctl_set_kbit(file.as_raw_fd(), i as nix::sys::ioctl::ioctl_param_type).expect("ioctl_set_kbit error");
         }
-        print!("param1: {}. ", prog.get("param1").unwrap());
+        ioclt_dev_setup(file.as_raw_fd(), &usetup).expect("ioclt_dev_setup error");
+        ioctl_dev_create(file.as_raw_fd()).expect("ioctl_dev_create error");
+        thread::sleep(time::Duration::new(1, 0));
     }
-
-    keys
+    file
 }
 
-pub fn init(scenario: &TestScenario) {
-    //    let keys = get_keys_from_scenario(scenario);
-
-    let mut file = File::open("/dev/uinput");
-    let mut fd = 0;
-    match file {
-        Ok(filed) => fd = filed.as_raw_fd(),
-        Err(err) => {
-            println!("Error parsing of json file: {}", err);
-        }
-    }
-    let mode = CString::new("w").unwrap();
+pub fn teardown(file: &std::fs::File) {
+    // Teardown
     unsafe {
-        let file = fdopen(fd, mode.as_ptr());
-        if file.is_null() {
-            panic!("can't open file");
-        }
+        thread::sleep(time::Duration::new(1, 0));
+        ioctl_dev_destroy(file.as_raw_fd()).expect("ioctl_dev_destroy");
     }
+    // Drop file
+    let _ = file;
+}
 
-    // unsafe {
-    //     match ui_ioctl_set_evbit(fd, 0) {
-    //         Err(err) => {
-    //             println!("Error ui_ioctl_set_evbit(): {}", err);
-    //         }
-    //         Ok(_) => (),
-    //     }
+pub fn press_key(file: &std::fs::File, keycode: i32, pressed: bool) {
+    let mut kevent = KEY_EVENT;
+    kevent.value = if pressed == true { 1 } else { 0 };
+    kevent.code = keycode as u16;
 
-    //     match ui_ioctl_set_keybit(fd, 0) {
-    //         Err(err) => {
-    //             println!("Error ui_ioctl_set_keybit(): {}", err);
-    //         }
-    //         Ok(_) => (),
-    //     }
-    // }
-    println!("All done");
+    let keyevt: &[u8] = unsafe { as_u8_slice(&kevent) };
+    nix::unistd::write(file.as_fd(), &keyevt).expect("write KEY_EVENT failed");
+    let report: &[u8] = unsafe { as_u8_slice(&REPORT) };
+    nix::unistd::write(file.as_fd(), &report).expect("write REPORT failed");
 }

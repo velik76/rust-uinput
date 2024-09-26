@@ -1,5 +1,10 @@
 {
-  "editor.formatOnSave": true,
+  // "editor.formatOnSave": true,
+  "rust-analyzer.rustfmt.extraArgs": ["--config", "max_width=140"],
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",
