@@ -1,21 +1,67 @@
 
-repeats: 20
+repeats: 10
 program:
+# Example of usage part with pressing of several keys
+  # - type: key_event
+  #   key: KEY_DOT
+  #   action: press
+  # - type: delay
+  #   duration: 10
+  # - type: key_event
+  #   key: KEY_DOT
+  #   action: release
+  # - type: delay
+  #   duration: 100
+  # - type: key_event
+  #   key: KEY_MINUS
+  #   action: press
+  # - type: key_event
+  #   key: KEY_MINUS
+  #   action: release
+  # - type: delay
+  #   duration: 100
+# Example of usage part with mouse movement and pressing of mouse keys
   - type: key_event
-    key: KEY_DOT
+    key: BTN_LEFT
     action: press
-  - type: delay
-    duration: 10
   - type: key_event
-    key: KEY_DOT
+    key: BTN_LEFT
+    action: release
+  - type: mouse_event
+    action: set
+    x: 100
+    y: 100
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 110
+    y: 110
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 120
+    y: 120
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 130
+    y: 130
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 140
+    y: 140
+  - type: delay
+    duration: 50
+  - type: key_event
+    key: BTN_RIGHT
+    action: press
+  - type: key_event
+    key: BTN_RIGHT
     action: release
   - type: delay
-    duration: 100
-  - type: key_event
-    key: KEY_MINUS
-    action: press
-  - type: key_event
-    key: KEY_MINUS
-    action: release
-  - type: delay
-    duration: 100
+    duration: 500

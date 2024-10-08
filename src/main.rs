@@ -7,13 +7,13 @@ use input_linux_sys::*;
 use nix::libc::exit;
 use serde_yaml::*;
 use std::{env, fs, io, result, thread, time};
+use test_scenario::FullEvent;
 use test_scenario::KeyAction;
+use test_scenario::MouseAction;
+use test_scenario::TestScenario;
 pub mod keys_enum;
 pub mod test_scenario;
 pub mod uinput;
-
-use test_scenario::FullEvent;
-use test_scenario::TestScenario;
 
 fn usage() {
     println!("usage: run it with yaml file wih scenario settings");
@@ -47,6 +47,14 @@ fn play_test_scenario(scenario: &TestScenario, file: &std::fs::File) {
                     }
                     uinput::press_key(file, *key as i32, press_b);
                 }
+                FullEvent::MouseEvent { action, x, y } => match action {
+                    MouseAction::Set => {
+                        uinput::mouse_set(file, *x, *y);
+                    }
+                    MouseAction::Move => {
+                        println!("MouseAction::Move not implemented yet");
+                    }
+                },
                 FullEvent::Delay { duration } => {
                     let delay_u64 = *duration as u64;
                     thread::sleep(time::Duration::from_millis(delay_u64));
@@ -64,7 +72,7 @@ fn main() {
         std::process::exit(1);
     }
 
-    // Read scenario from given yaml file
+    // Read scenario from yaml file
     let mut scenario: TestScenario;
     match (get_test_scenario(&args[1])) {
         Ok(x) => scenario = x,

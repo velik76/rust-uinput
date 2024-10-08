@@ -16,6 +16,8 @@ f.write("#[allow(non_camel_case_types)]\n\n")
 f.write("#[derive(Serialize, Deserialize, Debug, Clone, Copy)]\n")
 # f.write("#[repr(u32)]\n")
 f.write("pub enum Keys {\n")
+f.write("\tBTN_LEFT = 0x110,\n")
+f.write("\tBTN_RIGHT = 0x111,\n")
 
 for line in lines:
     # Replace multiple spaces by only one space
