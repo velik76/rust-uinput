@@ -4,8 +4,8 @@ use linux_raw_sys::ioctl::UI_DEV_DESTROY;
 use linux_raw_sys::ioctl::UI_DEV_SETUP;
 use std::ffi::CString;
 use std::os::fd::AsFd;
-use std::{fs::File, os::fd::AsRawFd, thread, time};
-use std::{mem, slice};
+use std::{fs::File, os::fd::AsRawFd};
+use std::{mem, result, slice, thread, time};
 
 // See C implementation
 const UINPUT_IOCTL_BASE: u8 = b'U';
@@ -42,7 +42,7 @@ unsafe fn as_u8_slice<T: Sized>(p: &T) -> &[u8] {
     ::core::slice::from_raw_parts((p as *const T) as *const u8, ::core::mem::size_of::<T>())
 }
 
-pub fn setup() -> std::fs::File {
+pub fn setup() -> result::Result<std::fs::File, &'static str> {
     // Prepare entries in uinput_setup. Must not be null
     let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
     UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
@@ -70,7 +70,7 @@ pub fn setup() -> std::fs::File {
         ioctl_dev_create(file.as_raw_fd()).expect("ioctl_dev_create error");
         thread::sleep(time::Duration::new(1, 0));
     }
-    file
+    Ok(file)
 }
 
 pub fn teardown(file: &std::fs::File) {

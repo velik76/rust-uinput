@@ -1,3 +1,6 @@
+#
+# Parses the events.rs file to get the KEY_* values from it into rust enum in keys_enum.rs
+#
 import re
 import os
 
@@ -7,8 +10,11 @@ with open(os.path.join(cwd, 'events.rs')) as f:
     lines = f.readlines()
 
 f = open(os.path.join(cwd, "../src/keys_enum.rs"), "w")
-f.write("/// AUTOMATIC GENERATED. DO NOT EDIT!\n")
+f.write("/// AUTOMATIC GENERATED. DO NOT EDIT!\n\n")
+f.write("use serde::{Deserialize, Serialize};\n\n")
 f.write("#[allow(non_camel_case_types)]\n\n")
+f.write("#[derive(Serialize, Deserialize, Debug, Clone, Copy)]\n")
+# f.write("#[repr(u32)]\n")
 f.write("pub enum Keys {\n")
 
 for line in lines:
@@ -36,4 +42,3 @@ for line in lines:
 
 f.write("}\n")
 f.close()
-
