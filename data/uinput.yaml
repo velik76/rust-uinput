@@ -1,0 +1,21 @@
+
+repeats: 20
+program:
+  - type: key_event
+    key: KEY_DOT
+    action: press
+  - type: delay
+    duration: 10
+  - type: key_event
+    key: KEY_DOT
+    action: release
+  - type: delay
+    duration: 100
+  - type: key_event
+    key: KEY_MINUS
+    action: press
+  - type: key_event
+    key: KEY_MINUS
+    action: release
+  - type: delay
+    duration: 100

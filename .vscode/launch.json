@@ -28,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/data/uinput.json"],
+            "args": ["${workspaceFolder}/data/uinput.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {

@@ -1,63 +1,93 @@
 #![allow(unused)]
 #[macro_use]
 extern crate nix;
-extern crate libc;
 
-use serde_json::Result;
-use std::env;
-use std::fs;
-
+use core::str;
+use input_linux_sys::*;
+use nix::libc::exit;
+use serde_yaml::*;
+use std::{env, fs, io, result, thread, time};
+use test_scenario::KeyAction;
+pub mod keys_enum;
 pub mod test_scenario;
 pub mod uinput;
 
+use test_scenario::FullEvent;
 use test_scenario::TestScenario;
 
 fn usage() {
-    println!("usage: run it with json file wih scenario settins");
+    println!("usage: run it with yaml file wih scenario settings");
 }
 
-fn get_test_scenario(file_path: &str) -> TestScenario {
-    // Read JSON file
-    let json_contents = fs::read_to_string(file_path).expect("Couldn't find or load config file");
+fn get_test_scenario(file_path: &str) -> result::Result<TestScenario, String> {
+    // Read file
+    let file_contents = fs::read_to_string(file_path).expect("Couldn't find or load config file");
 
-    // Parse the JSON and check if all Ok
-    match serde_json::from_str(&json_contents) {
+    // Parse the scenario and check if all Ok
+    let result = serde_yaml::from_str(&file_contents);
+    match result {
         Ok(x) => {
-            println!("JSON file: {} read Ok", file_path);
-            x
+            println!("Test scenario file: {} read Ok", file_path);
+            result::Result::Ok(x)
         }
-        Err(err) => {
-            println!("Error parsing of JSON file: {}", err);
-            std::process::exit(1);
-        }
+        Err(err) => result::Result::Err(err.to_string()),
     }
 }
 
-fn play_test_scenario(scenario: &TestScenario) {
-    println!("Repeats: {} ", scenario.repeats);
-    for prog in &*scenario.program {
-        print!("type: {}. ", prog.get("type").unwrap());
-        print!("param1: {}. ", prog.get("param1").unwrap());
-        if prog.contains_key("param2") {
-            print!("param2: {}", prog.get("param2").unwrap());
+fn play_test_scenario(scenario: &TestScenario, file: &std::fs::File) {
+    for i in 0..scenario.repeats {
+        for prog in &*scenario.program {
+            match prog {
+                FullEvent::KeyEvent { key, action } => {
+                    let key_i32 = *key as i32;
+                    let mut press_b = false;
+                    match action {
+                        KeyAction::Press => press_b = true,
+                        KeyAction::Release => {}
+                    }
+                    uinput::press_key(file, *key as i32, press_b);
+                }
+                FullEvent::Delay { duration } => {
+                    let delay_u64 = *duration as u64;
+                    thread::sleep(time::Duration::from_millis(delay_u64));
+                }
+            }
         }
-        println!("");
     }
 }
 
 fn main() {
-    // TODO: Just test code
-    uinput::ioctl_test();
-
+    // Get and check arguments
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         usage();
         std::process::exit(1);
     }
 
-    let scenario = get_test_scenario(&args[1]);
+    // Read scenario from given yaml file
+    let mut scenario: TestScenario;
+    match (get_test_scenario(&args[1])) {
+        Ok(x) => scenario = x,
+        Err(text) => {
+            println!("Error parsing scenario file: {}", text);
+            std::process::exit(2)
+        }
+    }
 
-    // uinput::init(&scenario);
-    // play_test_scenario(&scenario);
-    // std::process::exit(0);
+    // Setup uinput
+    let mut file: std::fs::File;
+    match (uinput::setup()) {
+        Ok(x) => file = x,
+        Err(text) => {
+            println!("Error setup uinput: {}", text);
+            std::process::exit(3)
+        }
+    }
+
+    // Play scenario
+    play_test_scenario(&scenario, &file);
+
+    // Finish
+    uinput::teardown(&file);
+    std::process::exit(0);
 }
