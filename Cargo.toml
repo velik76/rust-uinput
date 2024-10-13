@@ -19,5 +19,4 @@ linux-raw-sys = { version = "0.6.4", features = ["ioctl"] }
 nix = { version = "0.29.0", features = ["ioctl", "fs"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_yaml = "0.9.34"
-# libc = "0.2.155"
 input-linux-sys = "0.9.0"

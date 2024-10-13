@@ -28,7 +28,8 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/data/uinput.yaml"],
+            "args": ["${workspaceFolder}/data/key_events.yaml"],
+            // "args": ["${workspaceFolder}/data/mouse_events.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {

@@ -19,6 +19,7 @@ pub enum MouseAction {
 #[serde(rename_all = "snake_case")]
 pub enum FullEvent {
     KeyEvent { key: keys_enum::Keys, action: KeyAction },
+    KeyPressReleaseEvent { key: keys_enum::Keys },
     MouseEvent { action: MouseAction, x: i32, y: i32 },
     Delay { duration: u32 },
 }
