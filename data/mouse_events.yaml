@@ -1,0 +1,41 @@
+# Example of usage part with mouse movement and pressing of mouse keys
+display_width: 1920
+display_height: 1200
+repeats: 3
+program:
+  - type: key_press_release_event
+    key: BTN_LEFT
+  - type: mouse_event
+    action: set
+    x: 100
+    y: 100
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 110
+    y: 110
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 120
+    y: 120
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 130
+    y: 130
+  - type: delay
+    duration: 50
+  - type: mouse_event
+    action: set
+    x: 140
+    y: 140
+  - type: delay
+    duration: 50
+  - type: key_press_release_event
+    key: BTN_RIGHT
+  - type: delay
+    duration: 500
