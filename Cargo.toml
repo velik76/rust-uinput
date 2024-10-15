@@ -15,8 +15,13 @@ debug = false
 
 
 [dependencies]
+input-linux-sys = "0.9.0"
 linux-raw-sys = { version = "0.6.4", features = ["ioctl"] }
 nix = { version = "0.29.0", features = ["ioctl", "fs"] }
+regex = {version = "1.11.0"}
 serde = { version = "1.0.204", features = ["derive"] }
 serde_yaml = "0.9.34"
-input-linux-sys = "0.9.0"
+
+
+[build-dependencies]
+regex = {version = "1.11.0"}

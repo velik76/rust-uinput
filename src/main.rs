@@ -3,6 +3,7 @@
 extern crate nix;
 
 use nix::libc::exit;
+
 use std::{env, fs, io, result, thread, time};
 use test_scenario::{FullEvent, KeyAction, MouseAction, TestScenario};
 
