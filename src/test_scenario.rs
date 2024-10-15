@@ -26,6 +26,8 @@ pub enum FullEvent {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TestScenario {
+    pub display_width: u32,
+    pub display_height: u32,
     pub repeats: u32,
     pub program: Vec<FullEvent>,
 }

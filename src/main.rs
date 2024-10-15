@@ -83,7 +83,7 @@ fn main() {
 
     // Setup uinput
     let mut file: std::fs::File;
-    match (uinput::setup(1920, 1200)) {
+    match (uinput::setup(scenario.display_width as i32, scenario.display_height as i32)) {
         Ok(x) => file = x,
         Err(text) => {
             println!("Error setup uinput: {}", text);
