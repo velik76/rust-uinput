@@ -2,15 +2,11 @@
 #[macro_use]
 extern crate nix;
 
-use core::str;
-use input_linux_sys::*;
 use nix::libc::exit;
-use serde_yaml::*;
+
 use std::{env, fs, io, result, thread, time};
-use test_scenario::FullEvent;
-use test_scenario::KeyAction;
-use test_scenario::MouseAction;
-use test_scenario::TestScenario;
+use test_scenario::{FullEvent, KeyAction, MouseAction, TestScenario};
+
 pub mod keys_enum;
 pub mod test_scenario;
 pub mod uinput;
@@ -24,8 +20,7 @@ fn get_test_scenario(file_path: &str) -> result::Result<TestScenario, String> {
     let file_contents = fs::read_to_string(file_path).expect("Couldn't find or load config file");
 
     // Parse the scenario and check if all Ok
-    let result = serde_yaml::from_str(&file_contents);
-    match result {
+    match serde_yaml::from_str(&file_contents) {
         Ok(x) => {
             println!("Test scenario file: {} read Ok", file_path);
             result::Result::Ok(x)
@@ -40,12 +35,16 @@ fn play_test_scenario(scenario: &TestScenario, file: &std::fs::File) {
             match prog {
                 FullEvent::KeyEvent { key, action } => {
                     let key_i32 = *key as i32;
-                    let mut press_b = false;
-                    match action {
-                        KeyAction::Press => press_b = true,
-                        KeyAction::Release => {}
-                    }
+                    let press_b = match action {
+                        KeyAction::Press => true,
+                        KeyAction::Release => false,
+                    };
                     uinput::press_key(file, *key as i32, press_b);
+                }
+                FullEvent::KeyPressReleaseEvent { key } => {
+                    let key_i32 = *key as i32;
+                    uinput::press_key(file, *key as i32, true);
+                    uinput::press_key(file, *key as i32, false);
                 }
                 FullEvent::MouseEvent { action, x, y } => match action {
                     MouseAction::Set => {
@@ -84,7 +83,7 @@ fn main() {
 
     // Setup uinput
     let mut file: std::fs::File;
-    match (uinput::setup()) {
+    match (uinput::setup(scenario.display_width as i32, scenario.display_height as i32)) {
         Ok(x) => file = x,
         Err(text) => {
             println!("Error setup uinput: {}", text);

@@ -1,11 +1,9 @@
 use input_linux_sys::*;
-use linux_raw_sys::ioctl::UI_DEV_CREATE;
-use linux_raw_sys::ioctl::UI_DEV_DESTROY;
-use linux_raw_sys::ioctl::UI_DEV_SETUP;
+use linux_raw_sys::ioctl::{UI_DEV_CREATE, UI_DEV_DESTROY, UI_DEV_SETUP};
 use std::ffi::CString;
 use std::os::fd::AsFd;
 use std::{fs::File, os::fd::AsRawFd};
-use std::{mem, result, slice, thread, time};
+use std::{result, slice, thread, time};
 
 // See C implementation
 const UINPUT_IOCTL_BASE: u8 = b'U';
@@ -60,7 +58,7 @@ unsafe fn as_u8_slice<T: Sized>(p: &T) -> &[u8] {
     ::core::slice::from_raw_parts((p as *const T) as *const u8, ::core::mem::size_of::<T>())
 }
 
-pub fn setup() -> result::Result<std::fs::File, &'static str> {
+pub fn setup(display_width: i32, display_height: i32) -> result::Result<std::fs::File, &'static str> {
     // Prepare entries in uinput_user_dev. Must not be null
     let mut name: [i8; UINPUT_NAME_SIZE] = [0; UINPUT_NAME_SIZE];
     UINPUT_NAME.chars().enumerate().for_each(|(i, c)| {
@@ -68,8 +66,8 @@ pub fn setup() -> result::Result<std::fs::File, &'static str> {
     });
     let absmin: [i32; ABS_CNT as usize] = [0; ABS_CNT as usize];
     let mut absmax: [i32; ABS_CNT as usize] = [0; ABS_CNT as usize];
-    absmax[ABS_X as usize] = 1200;
-    absmax[ABS_Y as usize] = 800;
+    absmax[ABS_X as usize] = display_width;
+    absmax[ABS_Y as usize] = display_height;
     let absfuzz: [i32; ABS_CNT as usize] = [0; ABS_CNT as usize];
     let absflat: [i32; ABS_CNT as usize] = [0; ABS_CNT as usize];
     let userdev: uinput_user_dev = uinput_user_dev {
@@ -126,9 +124,9 @@ pub fn teardown(file: &std::fs::File) {
     let _ = file;
 }
 
-pub fn press_key(file: &std::fs::File, keycode: i32, pressed: bool) {
+pub fn press_key(file: &std::fs::File, keycode: i32, press: bool) {
     let mut kevent = KEY_EVENT;
-    kevent.value = if pressed == true { 1 } else { 0 };
+    kevent.value = if press == true { 1 } else { 0 };
     kevent.code = keycode as u16;
 
     let keyevt: &[u8] = unsafe { as_u8_slice(&kevent) };

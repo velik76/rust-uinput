@@ -1,0 +1,22 @@
+# Example of usage part with pressing of several keys
+display_width: 1920
+display_height: 1200
+repeats: 2
+program:
+  # Press KEY_DOT, wait a little and release it
+  - type: key_event
+    key: KEY_DOT
+    action: press
+  - type: delay
+    duration: 10
+  - type: key_event
+    key: KEY_DOT
+    action: release
+  # Wait before next action
+  - type: delay
+    duration: 100
+  # Press and release key without pause between
+  - type: key_press_release_event
+    key: KEY_MINUS
+  - type: delay
+    duration: 200
