@@ -4,7 +4,7 @@ use std::path::Path;
 use std::{env, fs};
 
 fn main() {
-    let input = Path::new(&env::current_dir().unwrap()).join("events.rs");
+    let input = Path::new(&env::current_dir().unwrap()).join("src/resource.rs");
     let output = Path::new(&env::current_dir().unwrap()).join("src/keys_enum.rs");
     let mut file = fs::File::create(output).unwrap();
 
