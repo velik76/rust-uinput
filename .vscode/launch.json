@@ -15,7 +15,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'uinput'",
+            "name": "Debug executable 'uinput' with key events",
             "program": "${workspaceFolder}/target/debug/uinput",
             "cargo": {
                 "args": [
@@ -28,18 +28,19 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/data/key_events.yaml"],
-            // "args": ["${workspaceFolder}/data/mouse_events.yaml"],
+            "args": [
+                "${workspaceFolder}/data/key_events.yaml"
+            ],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'uinput'",
+            "name": "Debug executable 'uinput' with mouse events",
+            "program": "${workspaceFolder}/target/debug/uinput",
             "cargo": {
                 "args": [
-                    "test",
-                    "--no-run",
+                    "build",
                     "--bin=uinput",
                     "--package=uinput"
                 ],
@@ -48,8 +49,10 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": [
+                "${workspaceFolder}/data/mouse_events.yaml"
+            ],
             "cwd": "${workspaceFolder}"
-        }
+        },
     ]
 }

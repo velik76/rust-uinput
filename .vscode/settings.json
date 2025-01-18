@@ -1,12 +1,15 @@
 {
-  "rust-analyzer.rustfmt.extraArgs": [
-    "--config",
-    "max_width=140"
-  ],
+  "editor.formatOnSave": true,
+  "editor.fontSize": 16,
+  "editor.tabSize": 4,
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true
   },
+  "rust-analyzer.rustfmt.extraArgs": [
+    "--config",
+    "max_width=140"
+  ],
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",
